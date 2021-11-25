@@ -20,7 +20,7 @@ configFile = args.configfile
 # Aux functions
 
 
-def load_conf(fichero):
+def load_json(fichero):
     with open(fichero) as File:
         try:
             config = {}
@@ -33,7 +33,7 @@ def load_conf(fichero):
 class config:
     configFile = configFile
     def __init__(self):
-        self.config = load_conf(self.configFile)
+        self.config = load_json(self.configFile)
         self.config['default'] = self.config['ipNetworks'][0]
 
     def getRoute(self):
@@ -48,6 +48,13 @@ class config:
         list_of_files.sort(key=os.path.getctime)
         return list_of_files[-2]
 
+## Funciones de análisis
+# Importamos lo que sabemos hacer
+import checklib
+from checklib import *
+checkActions = checklib.__all__
+
+
 
 ## API
 
@@ -60,7 +67,9 @@ app = create_app()
 #Que sabamos hacer
 @app.route('/functions', methods=['GET'])
 def get_functions():
-    response = {'message': 'success'}
+    response = []
+    for i in checkActions:
+        response.append({'name': i, 'description' : eval(i).getDescription(), 're': eval(i).getRE()})
     return jsonify(response)
 
 #Que redes podemos examinar
@@ -75,11 +84,21 @@ def get_scanfiles():
     response = { 'scanfile': conf.getScanFile(), 'referencefile' : conf.getReferenceFile() }
     return jsonify(response)    
 
+# Has cositas
+@app.route('/doit/<command>', methods=['GET'])
+def get_doit(command):
+    if (command in checkActions):
+            scanData = load_json(conf.getScanFile())
+            print ('# Probando:' + command)
+            if eval(command).getReference():
+                referenceData = load_json(conf.getScanFile())
+                response = eval(command).getMade(scanData,referenceData)
+            else:
+                response  = eval(command).getMade(scanData)
+    return jsonify(response)
+
 if __name__ == '__main__':
-    # Prepare the config
-    #config = load_conf(configFile)
-    #config['default'] = config['ipNetworks'][0]
-    #config['referencefile'],config['scanfile'] = getWorkfiles(config['directory'] + '/' + config['default'] + '/' + config['filePattern'])
+    # Cargamos a configuración 
     conf = config()
 
     app.run(debug=True)
