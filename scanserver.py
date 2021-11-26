@@ -75,26 +75,43 @@ def get_functions():
 #Que redes podemos examinar
 @app.route('/environment', methods=['GET'])
 def get_environment():
-    response = config['ipNetworks']
+    response = { 'environments' : conf.config['ipNetworks'], 'default' : conf.config['default']}
+    return jsonify(response)
+
+#Cambiar el entorno
+@app.route('/environment/<network>', methods=['GET'])
+def set_environment(network):
+    if network:
+        if network in conf.config['ipNetworks']:
+            conf.config['default'] = network    
+    response = { 'environments' : conf.config['ipNetworks'], 'default' : conf.config['default']}
     return jsonify(response)
 
 #Que ficheros se van a usar
-@app.route('/scanfiles', methods=['GET'])
-def get_scanfiles():
+@app.route('/files', methods=['GET'])
+def get_files():
     response = { 'scanfile': conf.getScanFile(), 'referencefile' : conf.getReferenceFile() }
     return jsonify(response)    
 
-# Has cositas
+
+# Haz cositas
 @app.route('/doit/<command>', methods=['GET'])
 def get_doit(command):
+    response = {'name' : command  , 'environment' : conf.config['default']}
     if (command in checkActions):
-            scanData = load_json(conf.getScanFile())
-            print ('# Probando:' + command)
-            if eval(command).getReference():
-                referenceData = load_json(conf.getScanFile())
-                response = eval(command).getMade(scanData,referenceData)
-            else:
-                response  = eval(command).getMade(scanData)
+        scanData = load_json(conf.getScanFile())
+        response['scanfile'] = conf.getScanFile()
+        print ('# Probando:' + command)
+        if eval(command).getReference():
+            referenceData = load_json(conf.getReferenceFile())
+            response['referencefile'] = conf.getReferenceFile()
+            #referenceData = load_json('../datos/redroja/enrich_scan-195.77.128.0_22-2021-10-15.json')
+            #response['referencefile'] = '../datos/redroja/enrich_scan-195.77.128.0_22-2021-10-15.json'
+            response.update(eval(command).getMade(scanData,referenceData))
+        else:
+            response.update(eval(command).getMade(scanData))
+    else:
+        response = { 'name' : 'command  ', 'result' : 'Command not found'}
     return jsonify(response)
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@
 
 
 import argparse,json,io
+from flask import jsonify
 
 #Procesamos los argumentos
 parser = argparse.ArgumentParser(description='Probando las opciones de analisis')
@@ -56,7 +57,7 @@ else:
         else:
             resultCommand = eval(command).getMade(scanData)
         print ('# Resultado:')
-        print(resultCommand)
+        print(json.dumps(resultCommand, indent=4, sort_keys=True))
 
     else:
         print ('Error, no se conoce el comando: ' + command)
