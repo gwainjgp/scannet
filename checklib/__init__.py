@@ -1,1 +1,1 @@
-__all__ = ['changerules','countobjects','dupobject','listobjects','obsolete','orphan']
+__all__ = ['changemacs','changerules','countobjects','dupobject','listobjects','obsolete','orphan']

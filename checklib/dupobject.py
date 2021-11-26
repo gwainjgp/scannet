@@ -24,15 +24,14 @@ def getReference ():
     return False
 
 def getMade(scanDATA):
-    responseString = '# Las siguientes IPs tienen más de un objeto en el dominio Check Point\n'
+    response = { 'name' : 'dupobject', 'description' : 'Las siguientes IPs tienen más de un objeto en el dominio Check Point', 'data' : []}
     for i in common.sortIPs(scanDATA.keys()):
       if ('objects' in scanDATA[i].keys()) and (len(scanDATA[i]['objects']) > 1):
-          #print(i,' ',len(scanDATA[i]['objects']))
-          responseString += i
+          item = { 'ip' : i, 'cpcobject' : []}
           for j in scanDATA[i]['objects']:
-            responseString += '; ' + j['uid'] + '(' +j['name'] + ')'
-          responseString += '\n'
-    return responseString
+            item['cpcobject'].append({'uid' : j['uid'], 'name' : j['name']})
+          response['data'].append(item)
+    return response
    
 
 ## fin de get

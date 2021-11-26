@@ -25,8 +25,9 @@ def getReference ():
 
 def getMade(scanDATA):
     responseString = '# Uso de las IPs en checkpoint'
+    response = { 'name' : 'countobjects', 'description' : 'Uso de las IPs en Check Point', 'data' : []}
     for i in common.sortIPs(scanDATA.keys()):
-        counts = {'access-control-rules': 0, 'nat-rules' : 0, 'objects' : 0, 'uid' : 0}
+        counts = {'ip': i, 'access-control-rules': 0, 'nat-rules' : 0, 'objects' : 0, 'uid' : 0}
         if ('objects' in scanDATA[i].keys()):
             #uids
             counts['uid'] = len(scanDATA[i]['objects'])
@@ -37,8 +38,8 @@ def getMade(scanDATA):
                     counts['access-control-rules'] += len(scanDATA[i]['whereused'][uid][useType]['access-control-rules'])
                     counts['nat-rules'] += len(scanDATA[i]['whereused'][uid][useType]['nat-rules'])
                     counts['objects'] += len(scanDATA[i]['whereused'][uid][useType]['objects'])     
-        responseString += i + ', ' + str(counts) + '\n'   
-    return responseString
+        response['data'].append(counts)
+    return response
    
 
 ## fin de get
