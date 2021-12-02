@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*
 #
 # Funciones comunes para todos
-
+import __main__
 
 def getDomainMACs():
-    listMAC = ['00:12:C1:0E:50:06','00:12:C1:C2:D0:04']
-    return listMAC
+    #listMAC = ['00:12:C1:0E:50:06','00:12:C1:C2:D0:04']
+    return __main__.conf.config['knowMACs']
 
-def getDomainFirewall():
-    list = ['195.77.129.20','213.0.53.131']
-    return list
+def getDomainFirewalls():
+    #ist = ['195.77.129.20','213.0.53.131']
+    return __main__.conf.config['domainFirewalls']
     
 def getOpenSources():
-    list = ['any','public_ips']
-    return list
+    return __main__.conf.config['openSources']
 
 def sortIPs(ips):
     import ipaddress
@@ -70,6 +69,42 @@ def prettyPrintAccessRule(ipAddress,ruleUID,scanData):
            ruleString += ', "uid": "' + rule['uid'] + '"'
     return ruleString
 
+def getSimpleRule(rule):
+    simpleRule = { 
+        'uid' : rule['uid'], 
+        'enabled' : rule['enabled'],
+        'source-negate': rule['source-negate'],
+        'destination-negate' : rule['destination-negate'],
+        'source' : rule['source'],
+        'destination' : rule['destination'],
+        'service-negate' : rule['service-negate'],
+        'service' : rule['service'],
+        'action' : rule['action']['name'],
+        }
+    if 'name' in rule.keys():
+        simpleRule['name'] = rule['name']
+    else:
+        simpleRule['name'] = ''
+    for cell in ['source','destination','service']:
+        nameList = []
+        for objectEntry in rule[cell]:
+            nameList.append({'name' : objectEntry['name'], 'uid' : objectEntry['uid']})
+        simpleRule[cell] = nameList
+    return simpleRule
+
+def getSimpleNATRule(rule):
+    simpleRule = {
+         'original-source' : { 'name' : rule['original-source']['name'], 'uid' : rule['original-source']['uid'] },
+         'original-destination' :  { 'name' :  rule['original-destination']['name'], 'uid' : rule['original-destination']['uid'] },
+         'original-service' :  { 'name' : rule['original-service']['name'], 'uid' : rule['original-service']['uid'] },
+         'translated-source' :  { 'name' : rule['translated-source']['name'], 'uid' : rule['translated-source']['uid'] },
+         'translated-destination' :  { 'name' : rule['translated-destination']['name'], 'uid' : rule['translated-destination']['uid'] },
+         'translated-service' :  { 'name' : rule['translated-service']['name'], 'uid' : rule['translated-service']['uid'] },
+         'uid' : rule['uid']
+        }
+    return simpleRule
+
+
 def getNATRulesUID(ipAddress,scanData):
     UIDList = []
     for rule in scanData[ipAddress]['nat-rules']:
@@ -96,4 +131,11 @@ def prettyDestinationNAT(natRules):
     for rule in natRules:
         responseList += ', "' + str(rule['translated-destination']['name'] ) + '"'
     return responseList + ']'
+
+def getDestinationNAT(natRules):
+    response = []
+    for rule in natRules:
+       response.append(rule['translated-destination']['name'])
+    return response
+
     

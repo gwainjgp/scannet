@@ -24,18 +24,21 @@ def getReference ():
     return False
 
 def getMade(scanDATA):
-    responseString = '# Uso de las IPs en checkpoint'
+    #responseString = '# Uso de las IPs en checkpoint'
+    response = { 'name' : 'listobjects', 'description' : 'Listado de objetos y reglas por IP', 'data' : []}
     for i in common.sortIPs(scanDATA.keys()):
+        ipObject = {'ip' : i, 'objects' : [], 'access-rules' : [], 'nat-rules' : []}
         if ('objects' in scanDATA[i].keys()):
             for uid in scanDATA[i]['objects']:
-                responseString += '"ip": "'+ i + '", "object": { "name": "' +  uid['name'] + '", "uid": "' + uid['uid'] + '"}\n'
+                ipObject['objects'].append({'name' : uid['name'], 'uid' : uid['uid']})
         if ('access-rules' in  scanDATA[i].keys()):
-            for rule in common.getAccessRulesUID(i,scanDATA):
-                responseString += '"ip": "' + i + '", "access-rule": { ' + common.prettyPrintAccessRule(i,rule,scanDATA) + '}\n'
+            for rule in scanDATA[i]['access-rules']:
+                ipObject['access-rules'].append(common.getSimpleRule(rule))
         if ('nat-rules' in  scanDATA[i].keys()):
-            for rule in common.getNATRulesUID(i,scanDATA):
-                 responseString += '"ip": "' + i + '", "nat-rule": { ' + common.prettyPrintNATRule(i,rule,scanDATA) + '}\n'
-    return responseString
+            for rule in scanDATA[i]['nat-rules']:
+                 ipObject['nat-rules'].append(common.getSimpleNATRule(rule))
+        response['data'].append(ipObject)
+    return response
    
 
 ## fin de get
